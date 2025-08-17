@@ -1,0 +1,94 @@
+// ToonShading.usf - Toon Shading Post Process Shader
+#include "/Engine/Private/Common.ush"
+#include "/Engine/Private/PostProcessCommon.ush"
+#include "/Engine/Private/DeferredShadingCommon.ush"
+
+// Toon Shading Parameters
+float ToonSteps;
+float ShadowIntensity;
+float3 ShadowColor;
+float HighlightThreshold;
+float HighlightIntensity;
+float RimPower;
+float RimIntensity;
+
+// Input Textures
+Texture2D SceneColorTexture;
+Texture2D SceneDepthTexture;
+Texture2D GBufferATexture;  // Normal, Roughness
+Texture2D GBufferBTexture;  // Metallic, Specular, AO
+Texture2D GBufferCTexture;  // BaseColor, ShadingModel
+
+SamplerState SceneColorSampler;
+SamplerState PointSampler;
+
+// Toon Shading Calculation
+float3 CalculateToonShading(float3 BaseColor, float3 Normal, float3 LightDir, float3 ViewDir)
+{
+    // Basic lighting calculation
+    float NdotL = saturate(dot(Normal, LightDir));
+    float NdotV = saturate(dot(Normal, ViewDir));
+    
+    // Toon-style diffuse lighting
+    float ToonDiffuse = floor(NdotL * ToonSteps) / ToonSteps;
+    
+    // Smooth transitions
+    float SmoothWidth = 0.1f / ToonSteps;
+    ToonDiffuse = smoothstep(ToonDiffuse - SmoothWidth, ToonDiffuse + SmoothWidth, NdotL);
+    
+    // Shadow area processing
+    float3 DiffuseColor = lerp(BaseColor * ShadowColor * ShadowIntensity, BaseColor, ToonDiffuse);
+    
+    // Highlight calculation (Blinn-Phong)
+    float3 HalfVector = normalize(LightDir + ViewDir);
+    float NdotH = saturate(dot(Normal, HalfVector));
+    float Specular = pow(NdotH, 32.0f);
+    
+    // Toon-style highlight
+    float ToonSpecular = step(HighlightThreshold, Specular) * HighlightIntensity;
+    float3 SpecularColor = float3(1.0f, 1.0f, 1.0f) * ToonSpecular;
+    
+    // Rim lighting
+    float RimFactor = 1.0f - NdotV;
+    float RimLighting = pow(RimFactor, RimPower) * RimIntensity;
+    float3 RimColor = BaseColor * RimLighting;
+    
+    return DiffuseColor + SpecularColor + RimColor;
+}
+
+// Main Pixel Shader
+float4 ToonShadingPS(FScreenVertexOutput Input) : SV_Target0
+{
+    float2 UV = Input.UV;
+    
+    // Sample G-Buffer data
+    float4 GBufferA = GBufferATexture.Sample(PointSampler, UV);
+    float4 GBufferB = GBufferBTexture.Sample(PointSampler, UV);
+    float4 GBufferC = GBufferCTexture.Sample(PointSampler, UV);
+    
+    // Decode G-Buffer data
+    float3 WorldNormal = DecodeNormal(GBufferA.xyz);
+    float3 BaseColor = GBufferC.rgb;
+    float Roughness = GBufferA.w;
+    float Metallic = GBufferB.r;
+    float Specular = GBufferB.g;
+    
+    // Reconstruct world position
+    float DeviceZ = SceneDepthTexture.Sample(PointSampler, UV).r;
+    float3 WorldPosition = ReconstructWorldPositionFromDepth(UV, DeviceZ);
+    
+    // Calculate view direction
+    float3 ViewDirection = normalize(View.WorldCameraOrigin - WorldPosition);
+    
+    // Main light direction (temporary fixed value, should be from light data)
+    float3 LightDirection = normalize(float3(0.5f, -0.7f, 0.3f));
+    
+    // Apply toon shading
+    float3 ToonColor = CalculateToonShading(BaseColor, WorldNormal, LightDirection, ViewDirection);
+    
+    // Blend with original color (optional)
+    float3 OriginalColor = SceneColorTexture.Sample(SceneColorSampler, UV).rgb;
+    float3 FinalColor = lerp(OriginalColor, ToonColor, 1.0f);  // Full toon shading
+    
+    return float4(FinalColor, 1.0f);
+}

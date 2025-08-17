@@ -1,0 +1,52 @@
+{
+	"FileVersion": 3,
+	"Version": 1,
+	"VersionName": "1.0.0",
+	"FriendlyName": "ToonForge",
+	"Description": "Real-time NPR (Non-Photorealistic Rendering) Toolkit for Unreal Engine 5",
+	"Category": "Rendering",
+	"CreatedBy": "Your Name",
+	"CreatedByURL": "https://github.com/yourusername/ToonForge",
+	"DocsURL": "https://github.com/yourusername/ToonForge/blob/main/README.md",
+	"MarketplaceURL": "",
+	"SupportURL": "https://github.com/yourusername/ToonForge/issues",
+	"CanContainContent": true,
+	"IsBetaVersion": false,
+	"IsExperimentalVersion": false,
+	"Installed": false,
+	"Modules": [
+		{
+			"Name": "ToonForge",
+			"Type": "Runtime",
+			"LoadingPhase": "PostConfigInit",
+			"AdditionalDependencies": [
+				"Engine",
+				"Core",
+				"CoreUObject",
+				"RenderCore",
+				"Renderer",
+				"RHI"
+			]
+		},
+		{
+			"Name": "ToonForgeEditor",
+			"Type": "Editor",
+			"LoadingPhase": "PostEngineInit",
+			"AdditionalDependencies": [
+				"ToonForge",
+				"UnrealEd",
+				"EditorStyle",
+				"EditorWidgets",
+				"Slate",
+				"SlateCore",
+				"ToolMenus"
+			]
+		}
+	],
+	"Plugins": [
+		{
+			"Name": "EditorScriptingUtilities",
+			"Enabled": true
+		}
+	]
+}
