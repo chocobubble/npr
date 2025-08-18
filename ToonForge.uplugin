@@ -1,0 +1,52 @@
+{
+	"FileVersion": 3,
+	"Version": 1,
+	"VersionName": "0.0.1",
+	"FriendlyName": "ToonForge",
+	"Description": "Real-time NPR (Non-Photorealistic Rendering) Toolkit for Unreal Engine 5",
+	"Category": "Rendering",
+	"CreatedBy": "chocobubble",
+	"CreatedByURL": "https://github.com/chocobubble/ToonForge",
+	"DocsURL": "https://github.com/chocobubble/ToonForge/blob/main/README.md",
+	"MarketplaceURL": "",
+	"SupportURL": "https://github.com/chocobubble/ToonForge/issues",
+	"CanContainContent": true,
+	"IsBetaVersion": false,
+	"IsExperimentalVersion": false,
+	"Installed": false,
+	"Modules": [
+		{
+			"Name": "ToonForge",
+			"Type": "Runtime",
+			"LoadingPhase": "PostConfigInit",
+			"AdditionalDependencies": [
+				"Engine",
+				"Core",
+				"CoreUObject",
+				"RenderCore",
+				"Renderer",
+				"RHI"
+			]
+		},
+		{
+			"Name": "ToonForgeEditor",
+			"Type": "Editor",
+			"LoadingPhase": "PostEngineInit",
+			"AdditionalDependencies": [
+				"ToonForge",
+				"UnrealEd",
+				"EditorStyle",
+				"EditorWidgets",
+				"Slate",
+				"SlateCore",
+				"ToolMenus"
+			]
+		}
+	],
+	"Plugins": [
+		{
+			"Name": "EditorScriptingUtilities",
+			"Enabled": true
+		}
+	]
+}
